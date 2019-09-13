@@ -7,7 +7,7 @@ def categoriesIndex():
   return 
 @app.route('/categories/<int:id>',methods=["GET"])
 def categoriesShow():
-  return 
+  return
 @app.route('/categories/<int:id>/edit',methods=["GET"])
 def categoriesEdit():
   return 
