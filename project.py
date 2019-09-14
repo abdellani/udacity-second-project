@@ -1,50 +1,86 @@
 from flask import Flask,request,render_template
+#forms
+from flask_wtf import FlaskForm
+from wtforms import StringField
+from wtforms.validators import DataRequired
+#databases
+from database import Base,Categorie
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+#Env variable
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+class Database:
+  def __init__(self):
+    self.engine = create_engine("sqlite:///database.sqlite")
+    self.Session = sessionmaker(self.engine)
+    self.session= self.Session()
+  def add_categorie (self,name,description=""):    
+    self.session.add(Categorie(name,description=description))
+
+class Form(FlaskForm):
+  name=StringField("name",validators=[DataRequired()])
+  def __init__(self):
+    super(Form,self).__init__(csrf_enabled=True)
 
 app = Flask(__name__)
+app.config['SECRET_KEY']=os.getenv("SECRET_KEY")
+db=Database()
 
+
+"""
+Resource : Categories
+"""
 @app.route('/')
 @app.route('/categories',methods=["GET"])
 def categoriesIndex():
-  return render_template("categories/index.html")
+  return render_template("categories/index.html",title="Index")
 @app.route('/categories/<int:id>',methods=["GET"])
 def categoriesShow():
-  return
-@app.route('/categories/<int:id>/edit',methods=["GET"])
-def categoriesEdit():
-  return 
-@app.route('/categories/<int:id>/edit',methods=["POST"])
-def categoriesUpdate():
-  return 
+  return render_template("categories/show.html")
+
 @app.route('/categories/new',methods=["GET"])
 def categoriesNew():
-  return 
+  form=Form()
+  return render_template("categories/new.html",form=form)
+@app.route('/categories/<int:id>/edit',methods=["GET"])
+def categoriesEdit():
+  return render_template("categories/edit.html")
+
 @app.route('/categories',methods=["POST"])
 def categoriesCreate():
   return
+@app.route('/categories/<int:id>/edit',methods=["POST"])
+def categoriesUpdate():
+  return 
 @app.route('/categories/<int:id>/delete',methods=["POST"])
 def categoriesDestroy():
   return 
 
-@app.route("/test")
+"""
+Resource: Items
+"""
 @app.route('/categories/<int:id>/items',methods=["GET"])
 def itemsIndex():
   return render_template("items/index.html")
-@app.route('/categories/<int:id>/items/<int:item_id>',methods=["GET"])
-def itemsShow():
-  return 
-@app.route('/categories/<int:id>/items/<int:item_id>/edit',methods=["GET"])
-def itemsEdit():
-  return 
-@app.route('/categories/<int:id>/items/<int:item_id>/edit',methods=["POST"])
-def itemsUpdate():
-  return
-@app.route("/test1")
 @app.route('/categories/<int:id>/items/new',methods=["GET"])
 def itemsNew():
   return render_template("items/new.html",title="Add new item")
+@app.route('/categories/<int:id>/items/<int:item_id>',methods=["GET"])
+def itemsShow():
+  return render_template("items/show.html")
+@app.route('/categories/<int:id>/items/<int:item_id>/edit',methods=["GET"])
+def itemsEdit():
+  return render_template("items/edit.html")
 
 @app.route('/categories/<int:id>/items',methods=["POST"])
 def itemsCreate():
+  return
+@app.route('/categories/<int:id>/items/<int:item_id>/edit',methods=["POST"])
+def itemsUpdate():
   return
 @app.route('/categories/<int:id>/items/<int:item_id>/delete',methods=["POST"])
 def itemsDestroy():
