@@ -1,12 +1,17 @@
 {% extends("categories/index.html") %}
 {% block categorie_related_content %}
 <div class="col-md-4">
-  <form action="/categories" method="POST">
+  <h1 class="h4">Add new categorie:</h1>
+  <form action="{{url_for('categoriesCreate')}}" method="POST">
     {{form.csrf_token}}
-    {{form.name.label}}
-    {{form.name(size=20)}}
-    {{form.description.label}}
-    {{form.description}}
+    <div class="form-group">
+      {{form.name.label}}
+      {{form.name(size=20,class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{form.description.label}}
+      {{form.description(class_="form-control")}}
+    </div>
     <input type="submit" value="Create">
   </form>
 </div>

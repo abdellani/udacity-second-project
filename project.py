@@ -3,6 +3,7 @@ from flask import Flask,request,render_template, redirect,g,flash
 from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import DataRequired
+from flask_wtf.csrf import CSRFProtect
 #databases
 from database import Base,Categorie
 from sqlalchemy import create_engine
@@ -15,14 +16,30 @@ load_dotenv()
 
 class Database:
   def __init__(self):
-    self.engine = create_engine("sqlite:///database.sqlite")
+    self.engine = create_engine("sqlite:///database.sqlite",connect_args={'check_same_thread': False})
     self.Session = sessionmaker(self.engine)
     self.session= self.Session()
+
   def add_categorie (self,name,description=""):    
     self.session.add(Categorie(name,description=description))
     self.session.commit()
+
+  def update_categorie (self,id,name,description):    
+    categorie=self.get_categorie(id)
+    categorie.name=name 
+    categorie.description=description
+    self.session.add(categorie)
+    self.session.commit()
+
   def get_categories(self):
     return self.session.query(Categorie).all()
+
+  def get_categorie(self,id=0):
+    return self.session.query(Categorie).get(id)
+
+  def delete_categorie(self,id):
+    self.session.delete(self.get_categorie(id))
+    self.session.commit()
 
 class CategoriesForm(FlaskForm):
   name=StringField("Name",validators=[DataRequired()])
@@ -32,12 +49,16 @@ class CategoriesForm(FlaskForm):
 
 app = Flask(__name__)
 app.config['SECRET_KEY']=os.getenv("SECRET_KEY")
+csrf = CSRFProtect(app)
 db=Database()
 
 @app.before_request
 def load_categories():
-  g.categories=db.get_categories()
-
+  if request.method == 'GET': 
+    g.categories=db.get_categories()
+@app.before_request
+def load_items():
+  print "this code work also : )"
 """
 Resource : Categories
 """
@@ -56,8 +77,12 @@ def categoriesNew():
   return render_template("categories/new.html",form=form)
 
 @app.route('/categories/<int:id>/edit',methods=["GET"])
-def categoriesEdit():
-  return render_template("categories/edit.html")
+def categoriesEdit(id):
+  form=CategoriesForm()
+  categorie=db.get_categorie(id)
+  form.name.data=categorie.name
+  form.description.data=categorie.description
+  return render_template("categories/edit.html",form=form,categorie=categorie)
 
 @app.route('/categories',methods=["POST"])
 def categoriesCreate():
@@ -71,12 +96,21 @@ def categoriesCreate():
     return redirect("/")
 
 @app.route('/categories/<int:id>/edit',methods=["POST"])
-def categoriesUpdate():
-  return 
+def categoriesUpdate(id):
+  form=CategoriesForm()
+  if form.validate_on_submit(): 
+    db.update_categorie(id,form.name.data,form.description.data)
+    flash(u'The catergorie has been updated successfully',"success")
+    return redirect("/")
+  else:
+    flash(u'Failed to update categorie',"danger")
+    return redirect("/")
 
 @app.route('/categories/<int:id>/delete',methods=["POST"])
-def categoriesDestroy():
-  return 
+def categoriesDestroy(id):
+  db.delete_categorie(id)
+  flash(u'The catergorie was deleted successfully',"success")
+  return redirect("/")
 
 """
 Resource: Items
