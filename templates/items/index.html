@@ -13,11 +13,13 @@
         {{item.name}}
       </a>
       <span>
-        <a href="{{url_for('itemsEdit',cat_id=categorie.id,item_id=item.id)}}" class="badge badge-warning badge-pill px-3">
+        <a href="{{url_for('itemsEdit',cat_id=categorie.id,item_id=item.id)}}"
+          class="badge badge-warning badge-pill px-3">
           <i class="fas fa-edit"></i>
         </a>
         <form onsubmit="return confirm('Do you really want to delete this categorie?');"
-          action="{{url_for('itemsDestroy',cat_id=categorie.id,item_id=item.id)}}" method="POST" class="badge badge-danger badge-pill">
+          action="{{url_for('itemsDestroy',cat_id=categorie.id,item_id=item.id)}}" method="POST"
+          class="badge badge-danger badge-pill">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <button class="transparent transparent-panel">
             <i class="fas fa-trash-alt text-white">

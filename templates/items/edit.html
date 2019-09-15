@@ -1,6 +1,18 @@
 {% extends("items/index.html") %}
 {% block item_related_content %}
 <div class="col-md-4">
-  edit item details here
+    <h1 class="h4">Update item:</h1>
+    <form action="{{url_for('itemsEdit',cat_id=categorie.id,item_id=item.id)}}" method="POST">
+      {{form.csrf_token}}
+      <div class="form-group">
+        {{form.name.label}}
+        {{form.name(size=20,class_="form-control")}}
+      </div>
+      <div class="form-group">
+        {{form.description.label}}
+        {{form.description(class_="form-control")}}
+      </div>
+      <input type="submit" value="Update">
+    </form>
 </div>
 {% endblock %}

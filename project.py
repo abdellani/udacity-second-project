@@ -53,6 +53,12 @@ class Database:
     def delete_item(self, id):
         self.session.delete(self.get_item(id))
         self.session.commit()
+    def update_item(self, id, name, description):
+        item = self.get_item(id)
+        item.name = name
+        item.description = description
+        self.session.add(item)
+        self.session.commit()
 
 
 class Form(FlaskForm):
@@ -114,10 +120,9 @@ def categoriesCreate():
     if form.validate_on_submit():
         db.add_categorie(form.name.data, form.description.data)
         flash(u'The new catergorie has been added successfully', "success")
-        return redirect("/")
     else:
         flash(u'Failed to add new categorie', "danger")
-        return redirect("/")
+    return redirect(url_for("categoriesIndex"))
 
 
 @app.route('/categories/<int:id>/edit', methods=["POST"])
@@ -126,17 +131,16 @@ def categoriesUpdate(id):
     if form.validate_on_submit():
         db.update_categorie(id, form.name.data, form.description.data)
         flash(u'The catergorie has been updated successfully', "success")
-        return redirect("/")
     else:
         flash(u'Failed to update categorie', "danger")
-        return redirect("/")
+    return redirect(url_for("categoriesIndex"))
 
 
 @app.route('/categories/<int:id>/delete', methods=["POST"])
 def categoriesDestroy(id):
     db.delete_categorie(id)
     flash(u'The catergorie was deleted successfully', "success")
-    return redirect("/")
+    return redirect(url_for("categoriesIndex"))
 
 
 """
@@ -164,7 +168,12 @@ def itemsShow(cat_id, item_id):
 
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/edit', methods=["GET"])
 def itemsEdit(cat_id, item_id):
-    return render_template("items/edit.html")
+    categorie = db.get_categorie(cat_id)
+    item = db.get_item(item_id)
+    form = Form()
+    form.name.data=item.name
+    form.description.data=item.description
+    return render_template("items/edit.html", title="Edit item",categorie=categorie,item=item,form=form)
 
 
 @app.route('/categories/<int:cat_id>/items', methods=["POST"])
@@ -173,15 +182,21 @@ def itemsCreate(cat_id):
     if form.validate_on_submit():
         db.add_item(cat_id, form.name.data, form.description.data)
         flash(u'The new item has been added successfully', "success")
-        return redirect(url_for("itemsIndex", cat_id=cat_id))
     else:
         flash(u'Failed to add item', "danger")
-        return redirect(url_for("itemsIndex", cat_id=cat_id))
+    return redirect(url_for("itemsIndex", cat_id=cat_id))
 
 
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/edit', methods=["POST"])
 def itemsUpdate(cat_id, item_id):
-    return
+    form = Form()
+    if form.validate_on_submit():
+        db.update_item(item_id, form.name.data, form.description.data)
+        flash(u'The catergorie has been updated successfully', "success")
+    else:
+        flash(u'Failed to update categorie', "danger")
+    return redirect(url_for("itemsIndex", cat_id=cat_id))
+
 
 
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/delete', methods=["POST"])
