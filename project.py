@@ -94,11 +94,6 @@ Resource : Categories
 def categoriesIndex():
     return render_template("categories/index.html", title="Index")
 
-# @app.route('/categories/<int:id>',methods=["GET"])
-# def categoriesShow():
-#   return render_template("categories/show.html")
-
-
 @app.route('/categories/new', methods=["GET"])
 def categoriesNew():
     form = Form()

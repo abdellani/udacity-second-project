@@ -7,7 +7,6 @@ Routes related to categories
 |action |method(http)|path |function|
 |-------|-------|-----|--------| 
 |index  |get    |/categories            |categoriesIndex|
-|show   |get    |/categories/:id        |categoriesShow|
 |edit   |edit   |/categories/:id/edit   |categoriesEdit|
 |update |post   |/categories/:id/edit   |categoriesUpdate|
 |new    |get    |/categories/new    |categoriesNew|
