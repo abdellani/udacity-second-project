@@ -1,11 +1,11 @@
-from flask import Flask,request,render_template, redirect,g,flash
+from flask import Flask,request,render_template, redirect,g,flash, url_for
 #forms
 from flask_wtf import FlaskForm
-from wtforms import StringField
+from wtforms import StringField,TextAreaField
 from wtforms.validators import DataRequired
 from flask_wtf.csrf import CSRFProtect
 #databases
-from database import Base,Categorie
+from database import Base,Categorie,Item
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 #Env variable
@@ -40,12 +40,20 @@ class Database:
   def delete_categorie(self,id):
     self.session.delete(self.get_categorie(id))
     self.session.commit()
+  def get_item(self,id):
+    return self.session.query(Item).get(id)
 
-class CategoriesForm(FlaskForm):
+  def add_item (self,cat_id,name,description):    
+    self.session.add(Item(cat_id,name,description))
+    self.session.commit()
+
+
+
+class Form(FlaskForm):
   name=StringField("Name",validators=[DataRequired()])
-  description=StringField("Description")
+  description=TextAreaField("Description",validators=[DataRequired()])
   def __init__(self):
-    super(CategoriesForm,self).__init__(csrf_enabled=True)
+    super(Form,self).__init__(csrf_enabled=True)
 
 app = Flask(__name__)
 app.config['SECRET_KEY']=os.getenv("SECRET_KEY")
@@ -56,6 +64,7 @@ db=Database()
 def load_categories():
   if request.method == 'GET': 
     g.categories=db.get_categories()
+
 @app.before_request
 def load_items():
   print "this code work also : )"
@@ -67,18 +76,18 @@ Resource : Categories
 def categoriesIndex():
   return render_template("categories/index.html",title="Index")
 
-@app.route('/categories/<int:id>',methods=["GET"])
-def categoriesShow():
-  return render_template("categories/show.html")
+# @app.route('/categories/<int:id>',methods=["GET"])
+# def categoriesShow():
+#   return render_template("categories/show.html")
 
 @app.route('/categories/new',methods=["GET"])
 def categoriesNew():
-  form=CategoriesForm()
-  return render_template("categories/new.html",form=form)
+  form=Form()
+  return render_template("categories/new.html",title="Add new category",form=form)
 
 @app.route('/categories/<int:id>/edit',methods=["GET"])
 def categoriesEdit(id):
-  form=CategoriesForm()
+  form=Form()
   categorie=db.get_categorie(id)
   form.name.data=categorie.name
   form.description.data=categorie.description
@@ -86,7 +95,7 @@ def categoriesEdit(id):
 
 @app.route('/categories',methods=["POST"])
 def categoriesCreate():
-  form=CategoriesForm()
+  form=Form()
   if form.validate_on_submit(): 
     db.add_categorie(form.name.data,form.description.data)
     flash(u'The new catergorie has been added successfully',"success")
@@ -97,7 +106,7 @@ def categoriesCreate():
 
 @app.route('/categories/<int:id>/edit',methods=["POST"])
 def categoriesUpdate(id):
-  form=CategoriesForm()
+  form=Form()
   if form.validate_on_submit(): 
     db.update_categorie(id,form.name.data,form.description.data)
     flash(u'The catergorie has been updated successfully',"success")
@@ -115,25 +124,42 @@ def categoriesDestroy(id):
 """
 Resource: Items
 """
-@app.route('/categories/<int:id>/items',methods=["GET"])
-def itemsIndex():
-  return render_template("items/index.html")
-@app.route('/categories/<int:id>/items/new',methods=["GET"])
-def itemsNew():
-  return render_template("items/new.html",title="Add new item")
-@app.route('/categories/<int:id>/items/<int:item_id>',methods=["GET"])
-def itemsShow():
-  return render_template("items/show.html")
-@app.route('/categories/<int:id>/items/<int:item_id>/edit',methods=["GET"])
+@app.route('/categories/<int:cat_id>/items',methods=["GET"])
+def itemsIndex(cat_id):
+  categorie=db.get_categorie(cat_id)
+  return render_template("items/index.html",categorie=categorie)
+
+@app.route('/categories/<int:cat_id>/items/new',methods=["GET"])
+def itemsNew(cat_id):
+  form=Form()
+  categorie=db.get_categorie(cat_id)
+  return render_template("items/new.html",title="Add new item",categorie=categorie,form=form)
+
+@app.route('/categories/<int:cat_id>/items/<int:item_id>',methods=["GET"])
+def itemsShow(cat_id,item_id):
+  categorie=db.get_categorie(cat_id)
+  item=db.get_item(item_id)
+  return render_template("items/show.html",title="item details",categorie=categorie,item=item)
+
+@app.route('/categories/<int:cat_id>/items/<int:item_id>/edit',methods=["GET"])
 def itemsEdit():
   return render_template("items/edit.html")
 
-@app.route('/categories/<int:id>/items',methods=["POST"])
-def itemsCreate():
-  return
+@app.route('/categories/<int:cat_id>/items',methods=["POST"])
+def itemsCreate(cat_id):
+  form=Form()
+  if form.validate_on_submit():
+    db.add_item(cat_id,form.name.data,form.description.data)
+    flash(u'The new item has been added successfully',"success")
+    return redirect(url_for("itemsIndex",cat_id=cat_id))
+  else:
+    flash(u'Failed to add item',"danger")
+    return redirect("/")
+
 @app.route('/categories/<int:id>/items/<int:item_id>/edit',methods=["POST"])
 def itemsUpdate():
   return
+
 @app.route('/categories/<int:id>/items/<int:item_id>/delete',methods=["POST"])
 def itemsDestroy():
   return 

@@ -1,6 +1,29 @@
 {% extends("items/index.html") %}
 {% block item_related_content %}
 <div class="col-md-4">
-  show item details here
+
+  <div class="card">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item active">Item details</li>
+
+      <li class="list-group-item">
+        <div>
+          <strong>Name :</strong> {{item.name}}
+        </div>
+      </li>
+      <li class="list-group-item">
+        <div>
+          <strong>Description :</strong>
+          <p>
+          {{item.description}}
+        </p>
+        </div>
+      </li>
+    </ul>
+    <div class="card-body">
+      <a href="#" class="card-link">Card link</a>
+      <a href="#" class="card-link">Another link</a>
+    </div>
+  </div>
 </div>
 {% endblock %}

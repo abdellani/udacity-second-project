@@ -9,7 +9,7 @@
     </div>
     {% for categorie in g.categories %}
     <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-      <a class="text-dark" href="#">
+      <a class="text-dark" href="{{url_for('itemsIndex',cat_id=categorie.id)}}">
         {{categorie.name}}
         <br />
         <small class="text-muted">
