@@ -1,11 +1,12 @@
 from flask import Flask, request, render_template, redirect, g, flash, url_for
 # forms
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField
-from wtforms.validators import DataRequired
+from wtforms import StringField, TextAreaField, PasswordField
+from wtforms.fields.html5 import EmailField
+from wtforms.validators import DataRequired, Email
 from flask_wtf.csrf import CSRFProtect
 # databases
-from database import Base, Categorie, Item
+from database import Base, Categorie, Item, User
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 # Env variable
@@ -43,21 +44,26 @@ class Database:
         self.session.delete(self.get_categorie(id))
         self.session.commit()
 
-    def get_item(self, id):
-        return self.session.query(Item).get(id)
-
     def add_item(self, cat_id, name, description):
         self.session.add(Item(cat_id, name, description))
         self.session.commit()
 
-    def delete_item(self, id):
-        self.session.delete(self.get_item(id))
-        self.session.commit()
     def update_item(self, id, name, description):
         item = self.get_item(id)
         item.name = name
         item.description = description
         self.session.add(item)
+        self.session.commit()
+
+    def get_item(self, id):
+        return self.session.query(Item).get(id)
+
+    def delete_item(self, id):
+        self.session.delete(self.get_item(id))
+        self.session.commit()
+
+    def add_user(self,name,email,password_hash):
+        self.session.add(User(name,email,password_hash))
         self.session.commit()
 
 
@@ -67,6 +73,17 @@ class Form(FlaskForm):
 
     def __init__(self):
         super(Form, self).__init__(csrf_enabled=True)
+
+
+class RegistrationForm(FlaskForm):
+    name = StringField("Name:", validators=[DataRequired()])
+    email = EmailField('Email address:', validators=[DataRequired(), Email()])
+    password = PasswordField("Password:", validators=[DataRequired()])
+    password_confirmation = PasswordField(
+        "Password confirmation:", validators=[DataRequired()])
+
+    def __init__(self):
+        super(RegistrationForm, self).__init__(csrf_enabled=True)
 
 
 app = Flask(__name__)
@@ -81,11 +98,6 @@ def load_categories():
         g.categories = db.get_categories()
 
 
-@app.before_request
-def load_items():
-    print "this code work also : )"
-
-
 """
 Resource : Categories
 """
@@ -93,6 +105,7 @@ Resource : Categories
 @app.route('/categories', methods=["GET"])
 def categoriesIndex():
     return render_template("categories/index.html", title="Index")
+
 
 @app.route('/categories/new', methods=["GET"])
 def categoriesNew():
@@ -166,9 +179,9 @@ def itemsEdit(cat_id, item_id):
     categorie = db.get_categorie(cat_id)
     item = db.get_item(item_id)
     form = Form()
-    form.name.data=item.name
-    form.description.data=item.description
-    return render_template("items/edit.html", title="Edit item",categorie=categorie,item=item,form=form)
+    form.name.data = item.name
+    form.description.data = item.description
+    return render_template("items/edit.html", title="Edit item", categorie=categorie, item=item, form=form)
 
 
 @app.route('/categories/<int:cat_id>/items', methods=["POST"])
@@ -193,13 +206,39 @@ def itemsUpdate(cat_id, item_id):
     return redirect(url_for("itemsIndex", cat_id=cat_id))
 
 
-
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/delete', methods=["POST"])
 def itemsDestroy(cat_id, item_id):
     db.delete_item(item_id)
     flash(u'The item has been deleted successfully', "success")
     return redirect(url_for("itemsIndex", cat_id=cat_id))
 
+
+"""
+Resource: User
+"""
+@app.route('/signup', methods=["GET"])
+def registrationNew():
+    form = RegistrationForm()
+    return render_template('registrations/new.html', title="New registration", form=form)
+
+
+@app.route('/signup', methods=["POST"])
+def registrationCreate():
+    form = RegistrationForm()
+    if form.validate_on_submit() and form.password.data == form.password_confirmation.data  :
+        db.add_user(form.name.data,form.email.data,form.password.data)
+        flash(u'The new user has been added successfully', "success")
+        return redirect(url_for("categoriesIndex"))
+    else:
+        flash(u'Failed to add new user', "danger")
+        return redirect(url_for("registrationCreate"))
+
+"""
+Resource :sessions
+"""
+@app.route('/login',methods=["GET"])
+def sessionNew():
+    return
 
 if __name__ == "__main__":
     app.run(host="localhost", port=8000, debug=True)

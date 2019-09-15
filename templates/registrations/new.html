@@ -1,0 +1,26 @@
+{%extends("layouts.html")%}
+{% block content%}
+<div class="col-md-4 offset-md-4">
+  <h1 class="h2 border-bottom pb-2 mb-2">New registration form</h1>
+  <form action="{{url_for('registrationCreate')}}" method="POST">
+    {{form.csrf_token}}
+    <div class="form-group">
+      {{form.name.label}}
+      {{form.name(size=20,class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{form.email.label}}
+      {{form.email(class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{form.password.label}}
+      {{form.password(class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{form.password_confirmation.label}}
+      {{form.password_confirmation(class_="form-control")}}
+    </div>
+    <input type="submit" value="Create">
+  </form>
+</div>
+{% endblock %}
