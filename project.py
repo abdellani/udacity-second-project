@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, g, flash, url_for
+from flask import Flask, request, render_template, redirect, g, flash, url_for,session
 # forms
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, PasswordField
@@ -62,9 +62,13 @@ class Database:
         self.session.delete(self.get_item(id))
         self.session.commit()
 
-    def add_user(self,name,email,password_hash):
-        self.session.add(User(name,email,password_hash))
+    def add_user(self, name, email, password_hash):
+        self.session.add(User(name, email, password_hash))
         self.session.commit()
+
+    def check_credentials(self, email, password_hash):
+        return self.session.query(User).filter(User.email == email,
+                                               User.password_hash == password_hash).count()
 
 
 class Form(FlaskForm):
@@ -86,6 +90,14 @@ class RegistrationForm(FlaskForm):
         super(RegistrationForm, self).__init__(csrf_enabled=True)
 
 
+class LoginForm(FlaskForm):
+    email = EmailField('Email address:', validators=[DataRequired(), Email()])
+    password = PasswordField("Password:", validators=[DataRequired()])
+
+    def __init__(self):
+        super(LoginForm, self).__init__(csrf_enabled=True)
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 csrf = CSRFProtect(app)
@@ -94,6 +106,8 @@ db = Database()
 
 @app.before_request
 def load_categories():
+    if "id" in session:
+        print session["id"]
     if request.method == 'GET':
         g.categories = db.get_categories()
 
@@ -217,28 +231,43 @@ def itemsDestroy(cat_id, item_id):
 Resource: User
 """
 @app.route('/signup', methods=["GET"])
-def registrationNew():
+def registrationsNew():
     form = RegistrationForm()
     return render_template('registrations/new.html', title="New registration", form=form)
 
 
 @app.route('/signup', methods=["POST"])
-def registrationCreate():
+def registrationsCreate():
     form = RegistrationForm()
-    if form.validate_on_submit() and form.password.data == form.password_confirmation.data  :
-        db.add_user(form.name.data,form.email.data,form.password.data)
+    if form.validate_on_submit() and form.password.data == form.password_confirmation.data:
+        db.add_user(form.name.data, form.email.data, form.password.data)
         flash(u'The new user has been added successfully', "success")
         return redirect(url_for("categoriesIndex"))
     else:
         flash(u'Failed to add new user', "danger")
         return redirect(url_for("registrationCreate"))
 
+
 """
 Resource :sessions
 """
-@app.route('/login',methods=["GET"])
-def sessionNew():
-    return
+@app.route('/login', methods=["GET"])
+def sessionsNew():
+    form = LoginForm()
+    return render_template('sessions/new.html', title="Login", form=form)
+
+
+@app.route('/login', methods=["POST"])
+def sessionsCreate():
+    form = LoginForm()
+    res = db.check_credentials(form.email.data, form.password.data)
+    if res > 0:
+        session["id"]=form.email.data
+        flash(u'Welcome', "success")
+    else:
+        flash(u'User or password are wrong !', "danger")
+    return redirect(url_for("sessionsCreate"))
+
 
 if __name__ == "__main__":
     app.run(host="localhost", port=8000, debug=True)
