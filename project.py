@@ -1,14 +1,13 @@
-from flask import Flask, request, render_template, redirect, g, flash, url_for,session
+from flask import Flask, request, render_template, redirect, g, flash, url_for, session
 # forms
-from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, PasswordField
-from wtforms.fields.html5 import EmailField
-from wtforms.validators import DataRequired, Email
 from flask_wtf.csrf import CSRFProtect
+from forms import Form, RegistrationForm, LoginForm
 # databases
 from database import Base, Categorie, Item, User
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+# Login
+from flask_login import LoginManager
 # Env variable
 from dotenv import load_dotenv
 import os
@@ -67,41 +66,27 @@ class Database:
         self.session.commit()
 
     def check_credentials(self, email, password_hash):
-        return self.session.query(User).filter(User.email == email,
-                                               User.password_hash == password_hash).count()
+        return self.session.query(User).filter(
+            User.email == email
+        ).filter(
+            User.password_hash == password_hash
+        ).first()
+    def get_user(user_id) :
+        return self.session.query(User).get(user_id)
 
-
-class Form(FlaskForm):
-    name = StringField("Name", validators=[DataRequired()])
-    description = TextAreaField("Description", validators=[DataRequired()])
-
-    def __init__(self):
-        super(Form, self).__init__(csrf_enabled=True)
-
-
-class RegistrationForm(FlaskForm):
-    name = StringField("Name:", validators=[DataRequired()])
-    email = EmailField('Email address:', validators=[DataRequired(), Email()])
-    password = PasswordField("Password:", validators=[DataRequired()])
-    password_confirmation = PasswordField(
-        "Password confirmation:", validators=[DataRequired()])
-
-    def __init__(self):
-        super(RegistrationForm, self).__init__(csrf_enabled=True)
-
-
-class LoginForm(FlaskForm):
-    email = EmailField('Email address:', validators=[DataRequired(), Email()])
-    password = PasswordField("Password:", validators=[DataRequired()])
-
-    def __init__(self):
-        super(LoginForm, self).__init__(csrf_enabled=True)
-
+login_manager = LoginManager()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+login_manager.init_app(app)
 csrf = CSRFProtect(app)
 db = Database()
+
+"""
+"""
+@login_manager.user_loader
+def load_user(user_id):
+    return db.get_user(user_id)
 
 
 @app.before_request
@@ -261,8 +246,8 @@ def sessionsNew():
 def sessionsCreate():
     form = LoginForm()
     res = db.check_credentials(form.email.data, form.password.data)
-    if res > 0:
-        session["id"]=form.email.data
+    if res is not None:
+        session["id"] = res.id
         flash(u'Welcome', "success")
     else:
         flash(u'User or password are wrong !', "danger")
