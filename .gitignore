@@ -1,4 +1,4 @@
 draft.txt
-database.pyc
+*.pyc
 database.sqlite
 .env
