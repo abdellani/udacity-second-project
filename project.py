@@ -1,6 +1,6 @@
 import os
 import random
-from flask import Flask, request, render_template, redirect, g, flash, url_for, session
+from flask import Flask, request, render_template, redirect, g, flash, url_for, session,jsonify
 # forms
 from flask_wtf.csrf import CSRFProtect
 from forms import Form, RegistrationForm, LoginForm
@@ -9,7 +9,7 @@ from database import Base, Categorie, Item, User
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 # Login
-from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_login import LoginManager, login_user, logout_user, login_required,current_user
 from flask_github import GitHub
 # Env variable
 from dotenv import load_dotenv
@@ -45,8 +45,8 @@ class Database:
         self.session.delete(self.get_categorie(id))
         self.session.commit()
 
-    def add_item(self, cat_id, name, description):
-        self.session.add(Item(cat_id, name, description))
+    def add_item(self, user_id,cat_id, name, description):
+        self.session.add(Item(user_id,cat_id, name, description))
         self.session.commit()
 
     def update_item(self, id, name, description):
@@ -123,10 +123,16 @@ Resource : Categories
 def categoriesIndex():
     return render_template("categories/index.html", title="Index")
 
+@app.route('/categories/json', methods=["GET"])
+def categoriesIndexJson():
+    return jsonify([ categorie.serialize for categorie in g.categories])
 
 @app.route('/categories/new', methods=["GET"])
 @login_required
 def categoriesNew():
+    if current_user.id!=1:
+        flash(u'You are not authorized !', "danger")
+        return redirect(url_for("categoriesIndex"))
     form = Form()
     return render_template("categories/new.html", title="Add new category", form=form)
 
@@ -134,6 +140,9 @@ def categoriesNew():
 @app.route('/categories/<int:id>/edit', methods=["GET"])
 @login_required
 def categoriesEdit(id):
+    if current_user.id!=1:
+        flash(u'You are not authorized !', "danger")
+        return redirect(url_for("categoriesIndex"))
     form = Form()
     categorie = db.get_categorie(id)
     form.name.data = categorie.name
@@ -144,6 +153,9 @@ def categoriesEdit(id):
 @app.route('/categories', methods=["POST"])
 @login_required
 def categoriesCreate():
+    if current_user.id!=1:
+        flash(u'You are not authorized !', "danger")
+        return redirect(url_for("categoriesIndex"))
     form = Form()
     if form.validate_on_submit():
         db.add_categorie(form.name.data, form.description.data)
@@ -156,6 +168,9 @@ def categoriesCreate():
 @app.route('/categories/<int:id>/edit', methods=["POST"])
 @login_required
 def categoriesUpdate(id):
+    if current_user.id!=1:
+        flash(u'You are not authorized !', "danger")
+        return redirect(url_for("categoriesIndex"))
     form = Form()
     if form.validate_on_submit():
         db.update_categorie(id, form.name.data, form.description.data)
@@ -168,6 +183,9 @@ def categoriesUpdate(id):
 @app.route('/categories/<int:id>/delete', methods=["POST"])
 @login_required
 def categoriesDestroy(id):
+    if current_user.id!=1:
+        flash(u'You are not authorized !', "danger")
+        return redirect(url_for("categoriesIndex"))
     db.delete_categorie(id)
     flash(u'The catergorie was deleted successfully', "success")
     return redirect(url_for("categoriesIndex"))
@@ -200,8 +218,11 @@ def itemsShow(cat_id, item_id):
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/edit', methods=["GET"])
 @login_required
 def itemsEdit(cat_id, item_id):
-    categorie = db.get_categorie(cat_id)
     item = db.get_item(item_id)
+    if current_user.id!=item.user_id:
+        flash(u'You are not authorized !', "danger")
+        return redirect(url_for("itemsIndex",cat_id=cat_id))
+    categorie = db.get_categorie(cat_id)
     form = Form()
     form.name.data = item.name
     form.description.data = item.description
@@ -213,7 +234,7 @@ def itemsEdit(cat_id, item_id):
 def itemsCreate(cat_id):
     form = Form()
     if form.validate_on_submit():
-        db.add_item(cat_id, form.name.data, form.description.data)
+        db.add_item(current_user.id,cat_id, form.name.data, form.description.data)
         flash(u'The new item has been added successfully', "success")
     else:
         flash(u'Failed to add item', "danger")
@@ -223,10 +244,14 @@ def itemsCreate(cat_id):
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/edit', methods=["POST"])
 @login_required
 def itemsUpdate(cat_id, item_id):
+    item = db.get_item(item_id)
+    if current_user.id!=item.user_id:
+        flash(u'You are not authorized !', "danger")
+        return redirect(url_for("itemsIndex",cat_id=cat_id))
     form = Form()
     if form.validate_on_submit():
         db.update_item(item_id, form.name.data, form.description.data)
-        flash(u'The catergorie has been updated successfully', "success")
+        flash(u'The item has been updated successfully', "success")
     else:
         flash(u'Failed to update categorie', "danger")
     return redirect(url_for("itemsIndex", cat_id=cat_id))
@@ -235,10 +260,14 @@ def itemsUpdate(cat_id, item_id):
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/delete', methods=["POST"])
 @login_required
 def itemsDestroy(cat_id, item_id):
+    item = db.get_item(item_id)
+    if current_user.id!=item.user_id:
+        flash(u'You are not authorized !', "danger")
+        return redirect(url_for("itemsIndex",cat_id=cat_id))
+
     db.delete_item(item_id)
     flash(u'The item has been deleted successfully', "success")
     return redirect(url_for("itemsIndex", cat_id=cat_id))
-
 
 """
 Resource: User
@@ -258,7 +287,7 @@ def registrationsCreate():
         return redirect(url_for("categoriesIndex"))
     else:
         flash(u'Failed to add new user', "danger")
-        return redirect(url_for("registrationCreate"))
+        return redirect(url_for("registrationsCreate"))
 
 
 """

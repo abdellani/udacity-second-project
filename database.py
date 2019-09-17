@@ -17,7 +17,20 @@ class Categorie(Base):
     def __init__(self, name, description=""):
         self.name = name
         self.description = description
-
+    @property
+    def serialize(self):
+       """Return object data in easily serializeable format"""
+       return {
+       	    'id': self.id,
+            'name': self.name,
+            'description' : self.description,
+            'items':[
+               {
+                   "name":item.name,
+                   "description":item.description,
+               } 
+               for item in self.items ]
+       }
 
 class Item(Base):
     __tablename__ = 'items'
@@ -25,8 +38,10 @@ class Item(Base):
     name = Column(String)
     description = Column(String)
     categorie_id = Column(Integer, ForeignKey("categories.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-    def __init__(self, cat_id, name, description):
+    def __init__(self, user_id, cat_id, name, description):
+        self.user_id = user_id
         self.categorie_id = cat_id
         self.name = name
         self.description = description

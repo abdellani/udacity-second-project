@@ -12,6 +12,7 @@
       <a class="text-dark" href="{{url_for('itemsShow',cat_id=categorie.id,item_id=item.id)}}">
         {{item.name}}
       </a>
+      {% if current_user.id == item.user_id%}
       <span>
         <a href="{{url_for('itemsEdit',cat_id=categorie.id,item_id=item.id)}}"
           class="badge badge-warning badge-pill px-3">
@@ -27,6 +28,8 @@
           </button>
         </form>
       </span>
+      {% endif%}
+
     </li>
     {%endfor%}
   </ul>
