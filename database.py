@@ -17,20 +17,21 @@ class Categorie(Base):
     def __init__(self, name, description=""):
         self.name = name
         self.description = description
+
     @property
     def serialize(self):
-       """Return object data in easily serializeable format"""
-       return {
-       	    'id': self.id,
+        return {
+            'id': self.id,
             'name': self.name,
-            'description' : self.description,
-            'items':[
-               {
-                   "name":item.name,
-                   "description":item.description,
-               } 
-               for item in self.items ]
-       }
+            'description': self.description,
+            'items': [
+                {
+                    "name": item.name,
+                    "description": item.description,
+                }
+                for item in self.items]
+        }
+
 
 class Item(Base):
     __tablename__ = 'items'
@@ -45,6 +46,14 @@ class Item(Base):
         self.categorie_id = cat_id
         self.name = name
         self.description = description
+
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+        }
 
 
 class User(Base, UserMixin):

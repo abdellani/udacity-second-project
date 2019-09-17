@@ -199,6 +199,10 @@ def itemsIndex(cat_id):
     categorie = db.get_categorie(cat_id)
     return render_template("items/index.html", categorie=categorie)
 
+@app.route('/categories/<int:cat_id>/items/json', methods=["GET"])
+def itemsIndexJson(cat_id):
+    categorie = db.get_categorie(cat_id)
+    return jsonify(categorie.serialize)
 
 @app.route('/categories/<int:cat_id>/items/new', methods=["GET"])
 @login_required
@@ -213,6 +217,11 @@ def itemsShow(cat_id, item_id):
     categorie = db.get_categorie(cat_id)
     item = db.get_item(item_id)
     return render_template("items/show.html", title="item details", categorie=categorie, item=item)
+
+@app.route('/categories/<int:cat_id>/items/<int:item_id>/json', methods=["GET"])
+def itemsShowJson(cat_id, item_id):
+    item = db.get_item(item_id)
+    return jsonify(item.serialize)
 
 
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/edit', methods=["GET"])

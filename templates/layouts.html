@@ -31,15 +31,6 @@
   </ul>
   {% endif %}
   {% endwith %}
-  <div>
-    logged in as {{current_user.id}}
-    <br/>
-    email as {{current_user.email}}
-    <br/>
-    name as {{current_user.name}}
-    <br/>
-    loggin in status {{current_user.is_authenticated }}
-  </div>
   <div class="bg-white container mt-4 p-4 border">
     <div class="row">
       {% block content %}
