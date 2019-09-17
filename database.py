@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy import Column, String, Integer, ForeignKey
+from flask_login import UserMixin
 
 Base = declarative_base()
 
@@ -31,7 +32,7 @@ class Item(Base):
         self.description = description
 
 
-class User(Base):
+class User(Base, UserMixin):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -42,18 +43,6 @@ class User(Base):
         self.name = name
         self.email = email
         self.password_hash = password_hash
-
-    def is_authenticated(self):
-        return True
-
-    def is_active(self):
-        return True
-
-    def is_anonymous(self):
-        return False
-
-    def is_anonymous(self):
-        return self.id
 
 
 if __name__ == '__main__':

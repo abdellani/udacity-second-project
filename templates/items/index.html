@@ -9,7 +9,7 @@
     </li>
     {% for item in categorie.items %}
     <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-      <a href="{{url_for('itemsShow',cat_id=categorie.id,item_id=item.id)}}">
+      <a class="text-dark" href="{{url_for('itemsShow',cat_id=categorie.id,item_id=item.id)}}">
         {{item.name}}
       </a>
       <span>

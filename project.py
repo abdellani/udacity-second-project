@@ -1,3 +1,5 @@
+import os
+import random
 from flask import Flask, request, render_template, redirect, g, flash, url_for, session
 # forms
 from flask_wtf.csrf import CSRFProtect
@@ -7,10 +9,10 @@ from database import Base, Categorie, Item, User
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 # Login
-from flask_login import LoginManager
+from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_github import GitHub
 # Env variable
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
@@ -71,28 +73,44 @@ class Database:
         ).filter(
             User.password_hash == password_hash
         ).first()
-    def get_user(user_id) :
+
+    def get_user(self, user_id):
         return self.session.query(User).get(user_id)
 
-login_manager = LoginManager()
+    def get_user_by_login(self, user_login):
+        return self.session.query(User).filter(User.name == user_login).first()
+
+
+db = Database()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+
+login_manager = LoginManager()
+
 login_manager.init_app(app)
 csrf = CSRFProtect(app)
-db = Database()
+
+app.config['GITHUB_CLIENT_ID'] = os.getenv('GITHUB_CLIENT_ID')
+app.config['GITHUB_CLIENT_SECRET'] = os.getenv('GITHUB_CLIENT_SECRET')
+github = GitHub(app)
 
 """
+LoginManager
 """
 @login_manager.user_loader
-def load_user(user_id):
+def user_loader(user_id):
     return db.get_user(user_id)
+
+
+@login_manager.unauthorized_handler
+def unauthorized_handler():
+    flash(u'You must login first !', "danger")
+    return redirect(url_for("sessionsCreate"))
 
 
 @app.before_request
 def load_categories():
-    if "id" in session:
-        print session["id"]
     if request.method == 'GET':
         g.categories = db.get_categories()
 
@@ -107,12 +125,14 @@ def categoriesIndex():
 
 
 @app.route('/categories/new', methods=["GET"])
+@login_required
 def categoriesNew():
     form = Form()
     return render_template("categories/new.html", title="Add new category", form=form)
 
 
 @app.route('/categories/<int:id>/edit', methods=["GET"])
+@login_required
 def categoriesEdit(id):
     form = Form()
     categorie = db.get_categorie(id)
@@ -122,6 +142,7 @@ def categoriesEdit(id):
 
 
 @app.route('/categories', methods=["POST"])
+@login_required
 def categoriesCreate():
     form = Form()
     if form.validate_on_submit():
@@ -133,6 +154,7 @@ def categoriesCreate():
 
 
 @app.route('/categories/<int:id>/edit', methods=["POST"])
+@login_required
 def categoriesUpdate(id):
     form = Form()
     if form.validate_on_submit():
@@ -144,6 +166,7 @@ def categoriesUpdate(id):
 
 
 @app.route('/categories/<int:id>/delete', methods=["POST"])
+@login_required
 def categoriesDestroy(id):
     db.delete_categorie(id)
     flash(u'The catergorie was deleted successfully', "success")
@@ -160,6 +183,7 @@ def itemsIndex(cat_id):
 
 
 @app.route('/categories/<int:cat_id>/items/new', methods=["GET"])
+@login_required
 def itemsNew(cat_id):
     form = Form()
     categorie = db.get_categorie(cat_id)
@@ -174,6 +198,7 @@ def itemsShow(cat_id, item_id):
 
 
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/edit', methods=["GET"])
+@login_required
 def itemsEdit(cat_id, item_id):
     categorie = db.get_categorie(cat_id)
     item = db.get_item(item_id)
@@ -184,6 +209,7 @@ def itemsEdit(cat_id, item_id):
 
 
 @app.route('/categories/<int:cat_id>/items', methods=["POST"])
+@login_required
 def itemsCreate(cat_id):
     form = Form()
     if form.validate_on_submit():
@@ -195,6 +221,7 @@ def itemsCreate(cat_id):
 
 
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/edit', methods=["POST"])
+@login_required
 def itemsUpdate(cat_id, item_id):
     form = Form()
     if form.validate_on_submit():
@@ -206,6 +233,7 @@ def itemsUpdate(cat_id, item_id):
 
 
 @app.route('/categories/<int:cat_id>/items/<int:item_id>/delete', methods=["POST"])
+@login_required
 def itemsDestroy(cat_id, item_id):
     db.delete_item(item_id)
     flash(u'The item has been deleted successfully', "success")
@@ -247,11 +275,50 @@ def sessionsCreate():
     form = LoginForm()
     res = db.check_credentials(form.email.data, form.password.data)
     if res is not None:
-        session["id"] = res.id
+        login_user(res)
         flash(u'Welcome', "success")
+        return redirect(url_for("categoriesIndex"))
     else:
         flash(u'User or password are wrong !', "danger")
-    return redirect(url_for("sessionsCreate"))
+        return redirect(url_for("sessionsCreate"))
+
+
+@app.route('/login/github')
+def loginGithub():
+    return github.authorize(scope="user")
+
+
+@app.route("/github-callback")
+@github.authorized_handler
+def authorized(oauth_token):
+    if oauth_token is None:
+        flash(u'Login failed', "danger")
+        return redirect(url_for("sessionsCreate"))
+    g.github_access_token = oauth_token
+    github_user = github.get('/user')
+    user = db.get_user_by_login(github_user['login'])
+    if user is None:
+        random_password = ''.join(random.choice(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") for i in range(48))
+        db.add_user(github_user['login'],
+                    github_user['email'], random_password)
+        user = db.get_user_by_login(github_user['login'])
+
+    login_user(user)
+    flash(u'Welcome', "success")
+    return redirect(url_for("categoriesIndex"))
+
+
+@github.access_token_getter
+def token_getter():
+    if g.github_access_token is not None:
+        return g.github_access_token
+
+
+@app.route('/logout', methods=["POST"])
+def sessionsDestroy():
+    logout_user()
+    return redirect(url_for('sessionsNew'))
 
 
 if __name__ == "__main__":
