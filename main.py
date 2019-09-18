@@ -4,7 +4,7 @@ from flask import Flask, request, render_template, redirect, g, flash, url_for, 
 from flask_login import LoginManager, login_user, logout_user, login_required,current_user
 # forms
 from flask_wtf.csrf import CSRFProtect
-# from forms import Form, RegistrationForm, LoginForm
+from forms import Form, RegistrationForm, LoginForm
 # databases
 from database import Base, Categorie, Item, User
 # from sqlalchemy import create_engine
@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 from loginmanager import login_manager
 from categories import categories_pages
 from items import items_pages
+from registrations import registrations_pages
 
 app = Flask(__name__)
 
@@ -35,30 +36,9 @@ def load_categories():
     if request.method == 'GET':
         g.categories = db.get_categories()
 
-
-
 app.register_blueprint(categories_pages)
 app.register_blueprint(items_pages)
-
-"""
-Resource: User
-"""
-@app.route('/signup', methods=["GET"])
-def registrationsNew():
-    form = RegistrationForm()
-    return render_template('registrations/new.html', title="New registration", form=form)
-
-
-@app.route('/signup', methods=["POST"])
-def registrationsCreate():
-    form = RegistrationForm()
-    if form.validate_on_submit() and form.password.data == form.password_confirmation.data:
-        db.add_user(form.name.data, form.email.data, form.password.data)
-        flash(u'The new user has been added successfully', "success")
-        return redirect(url_for("categories.index"))
-    else:
-        flash(u'Failed to add new user', "danger")
-        return redirect(url_for("registrationsCreate"))
+app.register_blueprint(registrations_pages)
 
 
 """
