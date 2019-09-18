@@ -3,6 +3,7 @@ from wtforms import StringField, TextAreaField, PasswordField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import DataRequired, Email
 
+
 class Form(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     description = TextAreaField("Description", validators=[DataRequired()])

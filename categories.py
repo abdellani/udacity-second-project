@@ -1,15 +1,18 @@
-from flask import Blueprint
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from flask import Flask, request, render_template, redirect, g, flash, url_for, session,jsonify
-from forms import Form
 from dbm import db
+from forms import Form
+from flask import Flask, request, render_template,\
+    redirect, g, flash, url_for, session, jsonify
+from flask import Blueprint
+from flask_login import LoginManager, login_user, \
+    logout_user, login_required, current_user
 
 """
 Resource : Categories
 """
 categories_pages = Blueprint('categories',
-                           __name__,
-                           template_folder='templates')
+                             __name__,
+                             template_folder='templates')
+
 
 @categories_pages.route('/')
 @categories_pages.route('/categories', methods=["GET"])
@@ -29,7 +32,9 @@ def new():
         flash(u'You are not authorized !', "danger")
         return redirect(url_for("categories.index"))
     form = Form()
-    return render_template("categories/new.html", title="Add new category", form=form)
+    return render_template("categories/new.html",
+                           title="Add new category",
+                           form=form)
 
 
 @categories_pages.route('/categories/<int:id>/edit', methods=["GET"])
@@ -42,7 +47,9 @@ def edit(id):
     categorie = db.get_categorie(id)
     form.name.data = categorie.name
     form.description.data = categorie.description
-    return render_template("categories/edit.html", form=form, categorie=categorie)
+    return render_template("categories/edit.html",
+                           form=form,
+                           categorie=categorie)
 
 
 @categories_pages.route('/categories', methods=["POST"])

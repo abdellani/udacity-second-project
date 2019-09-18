@@ -2,10 +2,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database import Base, Categorie, Item, User
 
+
 class Database:
     def __init__(self):
         self.engine = create_engine(
-            "sqlite:///database.sqlite", connect_args={'check_same_thread': False})
+            "sqlite:///database.sqlite",
+            connect_args={'check_same_thread': False})
         self.Session = sessionmaker(self.engine)
         self.session = self.Session()
 
@@ -30,8 +32,8 @@ class Database:
         self.session.delete(self.get_categorie(id))
         self.session.commit()
 
-    def add_item(self, user_id,cat_id, name, description):
-        self.session.add(Item(user_id,cat_id, name, description))
+    def add_item(self, user_id, cat_id, name, description):
+        self.session.add(Item(user_id, cat_id, name, description))
         self.session.commit()
 
     def update_item(self, id, name, description):

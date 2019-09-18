@@ -1,6 +1,8 @@
 from flask import Blueprint
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from flask import Flask, request, render_template, redirect, g, flash, url_for, session, jsonify
+from flask_login import LoginManager, login_user,\
+    logout_user, login_required, current_user
+from flask import Flask, request, render_template,\
+    redirect, g, flash, url_for, session, jsonify
 from forms import Form
 from dbm import db
 """
@@ -28,23 +30,32 @@ def indexJson(cat_id):
 def new(cat_id):
     form = Form()
     categorie = db.get_categorie(cat_id)
-    return render_template("items/new.html", title="Add new item", categorie=categorie, form=form)
+    return render_template("items/new.html",
+                           title="Add new item",
+                           categorie=categorie,
+                           form=form)
 
 
-@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>', methods=["GET"])
+@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>',
+                   methods=["GET"])
 def show(cat_id, item_id):
     categorie = db.get_categorie(cat_id)
     item = db.get_item(item_id)
-    return render_template("items/show.html", title="item details", categorie=categorie, item=item)
+    return render_template("items/show.html",
+                           title="item details",
+                           categorie=categorie,
+                           item=item)
 
 
-@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>/json', methods=["GET"])
+@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>/json',
+                   methods=["GET"])
 def showJson(cat_id, item_id):
     item = db.get_item(item_id)
     return jsonify(item.serialize)
 
 
-@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>/edit', methods=["GET"])
+@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>/edit',
+                   methods=["GET"])
 @login_required
 def edit(cat_id, item_id):
     item = db.get_item(item_id)
@@ -55,7 +66,11 @@ def edit(cat_id, item_id):
     form = Form()
     form.name.data = item.name
     form.description.data = item.description
-    return render_template("items/edit.html", title="Edit item", categorie=categorie, item=item, form=form)
+    return render_template("items/edit.html",
+                           title="Edit item",
+                           categorie=categorie,
+                           item=item,
+                           form=form)
 
 
 @items_pages.route('/categories/<int:cat_id>/items', methods=["POST"])
@@ -71,7 +86,8 @@ def create(cat_id):
     return redirect(url_for("items.index", cat_id=cat_id))
 
 
-@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>/edit', methods=["POST"])
+@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>/edit',
+                   methods=["POST"])
 @login_required
 def update(cat_id, item_id):
     item = db.get_item(item_id)
@@ -87,7 +103,8 @@ def update(cat_id, item_id):
     return redirect(url_for("items.index", cat_id=cat_id))
 
 
-@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>/delete', methods=["POST"])
+@items_pages.route('/categories/<int:cat_id>/items/<int:item_id>/delete',
+                   methods=["POST"])
 @login_required
 def destroy(cat_id, item_id):
     item = db.get_item(item_id)
