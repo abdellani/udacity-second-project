@@ -1,48 +1,33 @@
 import os
 import random
 from flask import Flask, request, render_template, redirect, g, flash, url_for, session,jsonify
+from flask_login import LoginManager, login_user, logout_user, login_required,current_user
 # forms
 from flask_wtf.csrf import CSRFProtect
-from forms import Form, RegistrationForm, LoginForm
+# from forms import Form, RegistrationForm, LoginForm
 # databases
 from database import Base, Categorie, Item, User
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+# from sqlalchemy import create_engine
+# from sqlalchemy.orm import sessionmaker
 from dbm import db
 # Login
-from flask_login import LoginManager, login_user, logout_user, login_required,current_user
 from flask_github import GitHub
 # Env variable
 from dotenv import load_dotenv
-
-load_dotenv()
-
-
+from loginmanager import login_manager
+from categories import categories_pages
+from items import items_pages
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 
-login_manager = LoginManager()
+load_dotenv()
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+app.config['GITHUB_CLIENT_ID'] = os.getenv('GITHUB_CLIENT_ID')
+app.config['GITHUB_CLIENT_SECRET'] = os.getenv('GITHUB_CLIENT_SECRET')
 
 login_manager.init_app(app)
 csrf = CSRFProtect(app)
-
-app.config['GITHUB_CLIENT_ID'] = os.getenv('GITHUB_CLIENT_ID')
-app.config['GITHUB_CLIENT_SECRET'] = os.getenv('GITHUB_CLIENT_SECRET')
 github = GitHub(app)
-
-"""
-LoginManager
-"""
-@login_manager.user_loader
-def user_loader(user_id):
-    return db.get_user(user_id)
-
-
-@login_manager.unauthorized_handler
-def unauthorized_handler():
-    flash(u'You must login first !', "danger")
-    return redirect(url_for("sessionsCreate"))
 
 
 @app.before_request
@@ -51,8 +36,6 @@ def load_categories():
         g.categories = db.get_categories()
 
 
-from categories import categories_pages
-from items import items_pages
 
 app.register_blueprint(categories_pages)
 app.register_blueprint(items_pages)
