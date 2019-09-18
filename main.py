@@ -39,6 +39,14 @@ def load_categories():
     if request.method == 'GET':
         g.categories = db.get_categories()
 
+@app.errorhandler(403)
+@app.errorhandler(404)
+@app.errorhandler(410)
+@app.errorhandler(500)
+def errorhandler(e):
+    flash(u'Ops, some wrong happened during your last request !', "danger")
+    return redirect("/")
+
 @app.route('/login/github')
 def loginGithub():
     return github.authorize(scope="user")
