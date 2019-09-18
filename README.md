@@ -48,36 +48,36 @@ Mohamed ABDELLANI
 ## Routes related to users
 
 |action |method(http)|path |function|
-|index  |get    |/signup            |registrationsNew|
-|index  |post   |/signup            |registrationsCreate|
-|index  |get   |/login            |sessionsNew|
-|index  |post   |/login            |sessionsCreate|
+|index  |get    |/signup            |registrations.new|
+|index  |post   |/signup            |registrations.create|
+|index  |get   |/login            |sessions.new|
+|index  |post   |/login            |sessions.create|
 |index  |get   |/login/github            |loginGithub|
 |index  |get   |/github-callback            |authorized|
-|index  |post   |/logout            |sessionsDestroy|
+|index  |post   |/logout            |sessions.destroy|
 
 ## Routes related to categories
 
 |action |method(http)|path |function|
 |-------|-------|-----|--------| 
-|index  |get    |/categories            |categoriesIndex|
-|index  |get    |/categories/json       |categoriesIndexJson|
-|edit   |edit   |/categories/:id/edit   |categoriesEdit|
-|update |post   |/categories/:id/edit   |categoriesUpdate|
-|new    |get    |/categories/new        |categoriesNew|
-|create |post   |/categories            |categoriesCreate|
-|destroy|post   |/categories/:id/delete |categoriesDestroy|
+|index  |get    |/categories            |categories.index|
+|index  |get    |/categories/json       |categories.indexJson|
+|edit   |edit   |/categories/:id/edit   |categories.edit|
+|update |post   |/categories/:id/edit   |categories.update|
+|new    |get    |/categories/new        |categories.new|
+|create |post   |/categories            |categories.create|
+|destroy|post   |/categories/:id/delete |categories.destroy|
 
 ## Routes related to Items
 
 |action |method(http)|path |function|
 |-------|-------|-----                            |--------| 
-|index  |get    |/categories/:id/items            |ItemsIndex|
-|index  |get    |/categories/:id/items/json       |ItemsIndexJson|
-|show   |get    |/categories/:id/items/:id        |ItemsShow|
-|show   |get    |/categories/:id/items/:id/json   |ItemsShowJson|
-|edit   |get    |/categories/:id/items/:id/edit   |ItemsEdit|
-|update |post   |/categories/:id/items/:id/edit   |ItemsUpdate|
-|new    |get    |/categories/:id/items/new        |ItemsNew|
-|create |post   |/categories/:id/items            |ItemsCreate|
-|destroy|post   |/categories/:id/items/:id/delete |ItemsDestroy|
+|index  |get    |/categories/:id/items            |items.index|
+|index  |get    |/categories/:id/items/json       |items.indexJson|
+|show   |get    |/categories/:id/items/:id        |items.show|
+|show   |get    |/categories/:id/items/:id/json   |items.showJson|
+|edit   |get    |/categories/:id/items/:id/edit   |items.edit|
+|update |post   |/categories/:id/items/:id/edit   |items.update|
+|new    |get    |/categories/:id/items/new        |items.new|
+|create |post   |/categories/:id/items            |items.create|
+|destroy|post   |/categories/:id/items/:id/delete |items.destroy|
