@@ -2,7 +2,7 @@
 {% block content%}
 <div class="col-md-4 offset-md-4">
   <h1 class="h2 border-bottom pb-2 mb-2">Login</h1>
-  <form action="{{url_for('sessionsCreate')}}" method="POST">
+  <form action="{{url_for('sessions.create')}}" method="POST">
     {{form.csrf_token}}
     <div class="form-group">
       {{form.email.label}}

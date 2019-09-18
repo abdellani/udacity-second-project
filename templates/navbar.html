@@ -11,14 +11,14 @@
       </li>
       {%if current_user.is_authenticated%}
       <li class="nav-item">
-        <form method="POST" class="my-0" action="{{url_for('sessionsDestroy')}}">
+        <form method="POST" class="my-0" action="{{url_for('sessions.destroy')}}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <a class="nav-link" href="#" onclick="this.parentNode.submit()">logout</a>
         </form>
       </li>
       {%else%}
       <li class="nav-item">
-        <a class="nav-link" href="{{url_for('sessionsNew')}}">Login </a>
+        <a class="nav-link" href="{{url_for('sessions.new')}}">Login </a>
       </li>
       {% endif %}
     </ul>
