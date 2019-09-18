@@ -4,7 +4,7 @@
   <div class="list-group">
     <div class="list-group-item active ">Categories
       {% if current_user.id == 1%}
-      [<a class="text-secondary" href="{{url_for('categoriesNew')}}">
+      [<a class="text-secondary" href="{{url_for('categories.new')}}">
         add new
       </a>]
       {% endif %}
@@ -20,11 +20,11 @@
       </a>
       {% if current_user.id == 1%}
       <span>
-        <a href="{{url_for('categoriesEdit',id=categorie.id)}}" class="badge badge-warning badge-pill px-3">
+        <a href="{{url_for('categories.edit',id=categorie.id)}}" class="badge badge-warning badge-pill px-3">
           <i class="fas fa-edit"></i>
         </a>
         <form onsubmit="return confirm('Do you really want to delete this categorie?');"
-          action="{{url_for('categoriesDestroy',id=categorie.id)}}" method="POST" class="badge badge-danger badge-pill">
+          action="{{url_for('categories.destroy',id=categorie.id)}}" method="POST" class="badge badge-danger badge-pill">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <button class="transparent transparent-panel">
             <i class="fas fa-trash-alt text-white">

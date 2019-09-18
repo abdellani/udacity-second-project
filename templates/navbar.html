@@ -7,7 +7,7 @@
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
       <li class="nav-item">
-        <a class="nav-link" href="{{url_for('categoriesIndex')}}">Home <span class="sr-only">(current)</span></a>
+        <a class="nav-link" href="{{url_for('categories.index')}}">Home <span class="sr-only">(current)</span></a>
       </li>
       {%if current_user.is_authenticated%}
       <li class="nav-item">
