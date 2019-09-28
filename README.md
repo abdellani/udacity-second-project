@@ -48,7 +48,7 @@ Mohamed ABDELLANI
 ## Routes related to users
 
 |action |method(http)|path |function|
-|-------|-------|-----|----|----| 
+|-------|-------|-----|--------| 
 |index  |get    |/signup            |registrations.new|
 |index  |post   |/signup            |registrations.create|
 |index  |get   |/login            |sessions.new|
